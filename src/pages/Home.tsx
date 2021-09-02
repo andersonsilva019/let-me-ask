@@ -11,7 +11,7 @@ import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
 
 import { useAuth } from '../hooks/useAuth';
-import { useJoinRoom } from '../hooks/query/useJoinRoom';
+import { useJoinRoom } from '../hooks/query/useQueryJoinRoom';
 
 import '../styles/auth.scss'
 

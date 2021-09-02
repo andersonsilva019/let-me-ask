@@ -96,15 +96,10 @@ export function useJoinRoom(roomCode: string) {
 
       if (error instanceof Yup.ValidationError) {
         let objectValidate = {}
-        if (!roomCode) {
-          objectValidate = yupErrorValidate(error)
-          dispatch({ type: REQUEST_STATUS.REJECTED, payload: { validationErrors: objectValidate } })
-        }
+        objectValidate = yupErrorValidate(error)
+        dispatch({ type: REQUEST_STATUS.REJECTED, payload: { validationErrors: objectValidate } })
       }
     }
-
-
   }
-
   return { isLoading, isError, validationErrors, handleJoinRoom }
 }
