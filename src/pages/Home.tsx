@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom'
 import { toast } from 'react-toastify';
-import BeatLoader from 'react-spinners/BeatLoader'
 
 import IllustrationImage from '../assets/images/illustration.svg';
 import LogoImage from '../assets/images/logo.svg';
@@ -66,10 +65,7 @@ export function Home() {
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
             />
-            <Button type="submit">
-              {!isLoading ? 'Entrar na sala' :
-                (<BeatLoader loading={isLoading} size={12} margin={2} color="#FFF" />)}
-            </Button>
+            <Button type="submit" loading={isLoading}>Entrar na sala</Button>
           </form>
         </div>
       </main>

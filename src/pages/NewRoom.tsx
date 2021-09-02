@@ -7,7 +7,6 @@ import LogoImage from '../assets/images/logo.svg';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
 
-import BeatLoader from 'react-spinners/BeatLoader';
 import { useQueryNewRoom } from '../hooks/query/useQueryNewRoom';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -50,9 +49,8 @@ export function NewRoom() {
               value={newRoom}
               error={validationErrors?.newRoom}
             />
-            <Button type="submit">
-              {!isLoading ? 'Criar sala' :
-                (<BeatLoader loading={isLoading} size={12} margin={2} color="#FFF" />)}
+            <Button type="submit" loading={isLoading}>
+              Criar sala
             </Button>
           </form>
           <p>
