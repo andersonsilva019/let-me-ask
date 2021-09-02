@@ -1,20 +1,37 @@
-import { FormEvent, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom'
+import { toast } from 'react-toastify';
+import BeatLoader from 'react-spinners/BeatLoader'
+
 import IllustrationImage from '../assets/images/illustration.svg';
 import LogoImage from '../assets/images/logo.svg';
 import GoogleIconImage from '../assets/images/google-icon.svg';
+
 import { Button } from '../components/Button';
+import { TextInput } from '../components/TextInput';
+
 import { useAuth } from '../hooks/useAuth';
-import { database } from '../services/firebase';
+import { useJoinRoom } from '../hooks/query/useJoinRoom';
 
 import '../styles/auth.scss'
 
 export function Home() {
 
-  const history = useHistory();
+  const history = useHistory()
   const { user, signInWithGoogle } = useAuth()
-
   const [roomCode, setRoomCode] = useState('')
+  const {
+    isLoading,
+    isError,
+    handleJoinRoom,
+    validationErrors
+  } = useJoinRoom(roomCode)
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(isError)
+    }
+  }, [isError])
 
   async function handleCreateRoom() {
 
@@ -23,28 +40,7 @@ export function Home() {
     }
 
     history.push('/rooms/new');
-  }
 
-  async function handleJoinRoom(event: FormEvent) {
-    event.preventDefault()
-
-    if (roomCode.trim() === '') {
-      return
-    }
-
-    const roomRef = await database.ref(`rooms/${roomCode}`).get()
-
-    if (!roomRef.exists()) {
-      alert('Room does not exist')
-      return
-    }
-
-    if (roomRef.val().endedAt) {
-      alert('Room already close.')
-      return
-    }
-
-    history.push(`/rooms/${roomCode}`);
   }
 
   return (
@@ -63,14 +59,17 @@ export function Home() {
           </button>
           <div className="separator">ou entre em uma sala</div>
           <form onSubmit={handleJoinRoom}>
-            <input
+            <TextInput
               type="text"
               placeholder="Digite o código da sala"
+              error={validationErrors?.roomCode}
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
-              required
             />
-            <Button type="submit">Entrar na sala</Button>
+            <Button type="submit">
+              {!isLoading ? 'Entrar na sala' :
+                (<BeatLoader loading={isLoading} size={12} margin={2} color="#FFF" />)}
+            </Button>
           </form>
         </div>
       </main>
