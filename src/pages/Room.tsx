@@ -1,10 +1,14 @@
-import { FormEvent, useState } from 'react';
+import { useEffect } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom'
+import { toast } from 'react-toastify';
 
 import logoImg from '../assets/images/logo.svg';
 import { Button } from '../components/Button';
 import { Question } from '../components/Question';
 import { RoomCode } from '../components/RoomCode';
+import { Textarea } from '../components/Textarea';
+import { useQuerySendQuestion } from '../hooks/query/useQuerySendQuestion';
 import { useAuth } from '../hooks/useAuth';
 import { useRoom } from '../hooks/useRoom';
 import { database } from '../services/firebase';
@@ -24,40 +28,19 @@ export function Room() {
 
   const [newQuestion, setNewQuestion] = useState('')
 
-  async function handleSendQuestion(event: FormEvent) {
-    event.preventDefault()
+  const {
+    isLoading,
+    isError,
+    handleSendQuestion,
+    validationErrors
+  } = useQuerySendQuestion(roomId, newQuestion)
 
-    const roomRef = await database.ref(`rooms/${roomId}`).get()
 
-    if (roomRef.val().endedAt) {
-      alert('Room already close.')
-      return
+  useEffect(() => {
+    if (isError) {
+      toast.error(isError)
     }
-
-    if (newQuestion.trim() === '') {
-      return;
-    }
-
-    if (!user) {
-      throw new Error('You must be logged in');
-    }
-
-    const question = {
-      content: newQuestion,
-      author: {
-        name: user.name,
-        avatar: user.avatar
-
-      },
-      isHighLighted: false,
-      isAnswered: false,
-    }
-
-    await database.ref(`rooms/${roomId}/questions`).push(question)
-
-    setNewQuestion('')
-
-  }
+  }, [isError])
 
   async function handleLikeQuestion(questionId: string, likeId?: string) {
     if (likeId) {
@@ -84,10 +67,11 @@ export function Room() {
         </div>
 
         <form onSubmit={handleSendQuestion}>
-          <textarea
+          <Textarea
             placeholder="O que você quer perguntar?"
             onChange={event => setNewQuestion(event.target.value)}
             value={newQuestion}
+            error={validationErrors?.newQuestion}
           />
 
           <div className="form-footer">
@@ -99,7 +83,13 @@ export function Room() {
             ) : (
               <span>Para enviar uma pergunta, <button onClick={signInWithGoogle}>faça seu login</button>.</span>
             )}
-            <Button type="submit" disabled={!user}>Enviar pergunta</Button>
+            <Button
+              type="submit"
+              disabled={!user}
+              loading={isLoading}
+            >
+              Enviar pergunta
+            </Button>
           </div>
         </form>
 
