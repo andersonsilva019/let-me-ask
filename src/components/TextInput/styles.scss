@@ -1,0 +1,30 @@
+.container--input {
+  
+  > input {
+    height: 50px;
+    border-radius: 8px;
+    padding: 0 16px;
+    background: #FFF;
+
+    &.error {
+      border: 2px solid #ea4335;
+    }
+
+    border: 1px solid #a8a8b3;
+
+  }
+}
+
+.error-input {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+
+  > img {
+    margin-right: 4px;
+  }
+
+  > span {
+    color: #ea4335;
+  }
+}
