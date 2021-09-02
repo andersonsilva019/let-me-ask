@@ -66,7 +66,6 @@ export function useQueryNewRoom(newRoom: string) {
     event.preventDefault()
 
     try {
-      console.log('Chegou aqui')
       dispatch({ type: REQUEST_STATUS.PENDING })
 
       await schemaFormData.validate({ newRoom }, { abortEarly: false })
