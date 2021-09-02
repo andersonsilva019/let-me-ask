@@ -8,7 +8,7 @@ type ButtonProps = {
 export function Button({ children, isOutline = false, ...props }: ButtonProps) {
   return (
     <button
-      className={`button ${isOutline && 'outlined'}`}
+      className={`button ${isOutline ? 'outlined' : ''}`}
       {...props}
     >
       {children}
