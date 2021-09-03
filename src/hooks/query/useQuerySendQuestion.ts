@@ -10,16 +10,21 @@ type ErrorObjectValidation = {
   newQuestion?: string;
 }
 
-type InitialStateType = {
-  isLoading?: boolean,
-  isError?: string,
+type PayloadType = {
+  error?: string
   validationErrors?: ErrorObjectValidation
 }
 
-const INITIAL_STATE = {
-  isLoading: false,
-  isError: '',
-  validationErrors: {}
+type ReducerStateType = {
+  isLoading: boolean,
+  error?: string,
+  validationErrors?: ErrorObjectValidation,
+  status: 'idle' | 'pending' | 'resolved' | 'rejected'
+}
+
+type ReducerActionType = {
+  type: 'idle' | 'pending' | 'resolved' | 'rejected',
+  payload?: PayloadType
 }
 
 const REQUEST_STATUS = {
@@ -29,23 +34,37 @@ const REQUEST_STATUS = {
   REJECTED: 'rejected'
 } as const
 
-function reducer(
-  state: InitialStateType,
-  action: { type: 'pending' | 'resolved' | 'rejected', payload?: InitialStateType }
-) {
+const initialState = {
+  isLoading: false,
+  error: '',
+  validationErrors: {},
+  status: REQUEST_STATUS.IDLE
+}
+
+function reducer(state: ReducerStateType, action: ReducerActionType) {
   switch (action.type) {
     case REQUEST_STATUS.PENDING:
-      return { isLoading: true };
+      return {
+        ...state,
+        isLoading: true,
+        status: REQUEST_STATUS.PENDING
+      };
     case REQUEST_STATUS.RESOLVED:
-      return { isLoading: false };
+      return {
+        ...state,
+        isLoading: false,
+        status: REQUEST_STATUS.RESOLVED
+      };
     case REQUEST_STATUS.REJECTED:
       return {
+        ...state,
         isLoading: false,
-        isError: action.payload?.isError,
-        validationErrors: action.payload?.validationErrors
+        error: action.payload?.error,
+        validationErrors: action.payload?.validationErrors,
+        status: REQUEST_STATUS.REJECTED
       }
     default:
-      throw Error(`Unhandled action ${action.type}`)
+      return state;
   }
 }
 
@@ -53,12 +72,13 @@ const schemaFormData = Yup.object().shape({
   newQuestion: Yup.string().required('Campo obrigatório!'),
 })
 
-
 export function useQuerySendQuestion(roomId: string, newQuestion: string) {
 
   const { user } = useAuth()
 
-  const [{ isLoading, isError, validationErrors }, dispatch] = useReducer(reducer, INITIAL_STATE)
+  const [state, dispatch] = useReducer(reducer, initialState)
+
+  const { isLoading, error, validationErrors, status } = state
 
   async function handleSendQuestion(event: FormEvent) {
     event.preventDefault()
@@ -74,7 +94,7 @@ export function useQuerySendQuestion(roomId: string, newQuestion: string) {
         dispatch({
           type: REQUEST_STATUS.REJECTED,
           payload: {
-            isError: 'Esta sala já foi encerrada e não é possível enviar novas perguntas'
+            error: 'Esta sala já foi encerrada e não é possível enviar novas perguntas'
           }
         })
         return
@@ -84,7 +104,7 @@ export function useQuerySendQuestion(roomId: string, newQuestion: string) {
         dispatch({
           type: REQUEST_STATUS.REJECTED,
           payload: {
-            isError: 'Realize o login para enviar perguntas'
+            error: 'Realize o login para enviar perguntas'
           }
         })
         return
@@ -103,14 +123,29 @@ export function useQuerySendQuestion(roomId: string, newQuestion: string) {
 
       await database.ref(`rooms/${roomId}/questions`).push(question)
 
+      dispatch({ type: REQUEST_STATUS.RESOLVED })
+
     } catch (error) {
       console.log(error)
       if (error instanceof Yup.ValidationError) {
         let objectValidate = {}
         objectValidate = yupErrorValidate(error)
-        dispatch({ type: REQUEST_STATUS.REJECTED, payload: { validationErrors: objectValidate } })
+        dispatch({
+          type: REQUEST_STATUS.REJECTED,
+          payload: {
+            validationErrors: objectValidate,
+            error: 'Opss... Você não preencheu o campo de perguntas!'
+          }
+        })
       }
     }
   }
-  return { isLoading, isError, validationErrors, handleSendQuestion }
+  return {
+    isLoading,
+    error,
+    isError: status === REQUEST_STATUS.REJECTED,
+    isSuccess: status === REQUEST_STATUS.RESOLVED,
+    validationErrors,
+    handleSendQuestion
+  }
 }

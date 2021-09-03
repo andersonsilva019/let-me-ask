@@ -77,6 +77,8 @@ export function useQueryNewRoom(newRoom: string) {
         authorId: user?.id,
       })
 
+      dispatch({ type: REQUEST_STATUS.RESOLVED })
+
       history.push(`/rooms/${firebaseRoom.key}`)
 
     } catch (error) {

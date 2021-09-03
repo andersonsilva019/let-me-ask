@@ -90,6 +90,8 @@ export function useJoinRoom(roomCode: string) {
         return
       }
 
+      dispatch({ type: REQUEST_STATUS.RESOLVED })
+
       history.push(`/rooms/${roomCode}`);
 
     } catch (error) {
